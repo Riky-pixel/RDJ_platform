@@ -4,13 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>DJ Live Platform</title>
-    <link rel="icon" type="image/png" href="logo_no_bg_black.png">
     <!-- Google Fonts: Outfit per un look moderno e tech -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <!-- FontAwesome per le icone -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <style>
         /* --- VARIABILI GLOBALI --- */
@@ -35,7 +32,7 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Il  nero viene invertito in bianco tramite CSS */
+        /* Il logo nero viene invertito in bianco tramite CSS */
         .logo-img {
             filter: invert(1) brightness(2);
             max-width: 100%;
@@ -61,93 +58,6 @@
             30% { transform: scale(1.05); opacity: 1; }
             70% { transform: scale(1); opacity: 1; }
             100% { transform: scale(1.5); opacity: 0; }
-        }
-
-        /* Contenitore della Bacheca */
-        #bachecaList {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            justify-content: center;
-            align-items: center;
-            padding: 30px 10px;
-            background: rgba(20, 20, 20, 0.6); /* Sfondo scuro per far risaltare le note */
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            min-height: 300px;
-        }
-        
-        /* Stile del singolo "Blocchettino" */
-        .digital-note {
-            width: 130px;
-            min-height: 130px;
-            padding: 20px 15px;
-            border-radius: 4px 12px 12px 12px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.5);
-            color: #111; /* Testo scuro ad alto contrasto */
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            position: relative;
-            cursor: pointer;
-            
-            /* Variabile CSS --rot iniettata da JS per l'inclinazione casuale */
-            transform: rotate(var(--rot));
-            
-            /* Animazione di entrata professionale */
-            animation: popInNote 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-            transition: transform 0.3s ease, box-shadow 0.3s ease, z-index 0s;
-        }
-        
-        /* Effetto Hover per interazione */
-        .digital-note:hover {
-            transform: scale(1.15) rotate(0deg) !important;
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
-            z-index: 10;
-        }
-        
-        /* La "Puntina" (Pin) digitale in alto al centro */
-        .digital-note::before {
-            content: '';
-            position: absolute;
-            top: 8px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, #666, #111);
-            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.5);
-        }
-        
-        .note-author {
-            font-weight: 800;
-            font-size: 0.8rem;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            opacity: 0.6;
-        }
-        
-        .note-text {
-            font-size: 1.05rem;
-            line-height: 1.3;
-            font-weight: 500;
-            word-wrap: break-word;
-        }
-        
-        /* Keyframe per l'effetto pop-up rimbalzante */
-        @keyframes popInNote {
-            0% { 
-                opacity: 0; 
-                transform: scale(0.3) translateY(-60px) rotate(var(--rot)); 
-            }
-            100% { 
-                opacity: 1; 
-                transform: scale(1) translateY(0) rotate(var(--rot)); 
-            }
         }
 
         /* --- GESTIONE VISTE (SPA) --- */
@@ -222,6 +132,16 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.3s; }
 
+        .board-messages { max-height: 300px; overflow-y: auto; margin-bottom: 15px; }
+        .message-bubble {
+            background: var(--border);
+            padding: 12px 15px;
+            border-radius: 12px 12px 12px 2px;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+        }
+        .message-bubble strong { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; }
+
         .social-links { display: flex; justify-content: center; gap: 20px; margin-top: 20px; }
         .social-links a { color: var(--text-main); font-size: 2rem; transition: color 0.3s; }
         .social-links a:hover { color: var(--text-muted); }
@@ -241,41 +161,6 @@
         
         .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;}
         .admin-header img { width: 50px; margin: 0; }
-
-        /* --- STILI PER L'ESPORTAZIONE IMMAGINE (Nascosto) --- */
-        #export-container {
-            position: fixed;
-            top: 0;
-            left: -9999px; /* Lo teniamo fuori dallo schermo finché non serve */
-            width: 1080px; /* Larghezza in stile post Instagram */
-            padding: 60px;
-            background-color: #050505;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            z-index: -999;
-        }
-        #export-title { font-size: 3.5rem; margin-bottom: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px;}
-        #export-desc { font-size: 1.8rem; color: #888; margin-bottom: 50px; }
-        #export-bacheca {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 25px;
-            justify-content: center;
-            width: 100%;
-            background: rgba(20, 20, 20, 0.6);
-            border-radius: 20px;
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            padding: 50px;
-            min-height: 500px;
-        }
-        #export-logo {
-            margin-top: 40px;
-            align-self: flex-end;
-            width: 150px;
-            opacity: 0.6;
-        }      
     </style>
 </head>
 <body>
@@ -283,21 +168,21 @@
     <!-- 1. SPLASH SCREEN -->
     <div id="splash-screen">
         <div class="logo-container">
-            <img src="logo_no_bg_white.png" alt="Logo" class="logo-img" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cG9seWdvbiBwb2ludHM9IjUwLDUgOTUsMjUgOTUsNzUgNTAsOTUgNSw3NSA1LDI1IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iNSIvPjwvc3ZnPg=='">
+            <img src="logo.png" alt="Logo" class="logo-img" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cG9seWdvbiBwb2ludHM9IjUwLDUgOTUsMjUgOTUsNzUgNTAsOTUgNSw3NSA1LDI1IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iNSIvPjwvc3ZnPg=='">
         </div>
     </div>
 
     <!-- 2. VISTA UTENTE (PUBBLICO) -->
     <div id="user-view" class="view">
         <header>
-            <img src="logo_no_bg_white.png" alt="Logo" class="logo-img" onerror="this.style.display='none'">
-            <h1>RDJ - LIVE VIBES</h1>
+            <img src="logo.png" alt="Logo" class="logo-img" onerror="this.style.display='none'">
+            <h1>Live Vibes</h1>
         </header>
 
         <div class="nav-tabs">
             <button class="active" onclick="switchTab('request')"><i class="fa-solid fa-music"></i> Brani</button>
             <button onclick="switchTab('board')"><i class="fa-solid fa-message"></i> Bacheca</button>
-            <button onclick="switchTab('shoutout')"><i class="fa-solid fa-microphone"></i> CHAT DJ</button>
+            <button onclick="switchTab('shoutout')"><i class="fa-solid fa-microphone"></i> DJ</button>
             <button onclick="switchTab('contacts')"><i class="fa-solid fa-link"></i> Info</button>
         </div>
 
@@ -315,7 +200,7 @@
         <!-- Tab: Bacheca Pubblica -->
         <div id="tab-board" class="tab-content card">
             <h2>Bacheca Live</h2>
-            <div id="bachecaList">
+            <div class="board-messages" id="public-board">
                 <!-- Messaggi mock popolati via JS -->
             </div>
             <form id="form-board" onsubmit="handleBoardMsg(event)">
@@ -329,7 +214,7 @@
         <div id="tab-shoutout" class="tab-content card">
             <h2>Messaggio privato al DJ</h2>
             <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px;">
-                Manda un messaggio al DJ. Questo messaggio non sarà pubblico.
+                Fai una dedica, annuncia un compleanno o saluta il DJ. Questo messaggio non sarà pubblico.
             </p>
             <form id="form-shoutout" onsubmit="handleShoutout(event)">
                 <input type="text" id="shout-name" placeholder="Il tuo nome" required>
@@ -358,12 +243,13 @@
                 </a>
             </div>
         </div>
+    </div>
 
     <!-- 3. VISTA LOGIN ADMIN -->
     <div id="admin-login-view" class="view">
         <div class="card" style="margin-top: 20vh;">
             <div style="text-align: center; margin-bottom: 20px;">
-                <img src="logo_no_bg_white.png" alt="Logo" class="logo-img" style="width: 80px;" onerror="this.style.display='none'">
+                <img src="logo.png" alt="Logo" class="logo-img" style="width: 80px;" onerror="this.style.display='none'">
                 <h1>DJ Console</h1>
             </div>
             <form onsubmit="handleLogin(event)">
@@ -377,7 +263,7 @@
     <div id="admin-dashboard-view" class="view">
         <div class="admin-header">
             <div>
-                <h1>RDJ ADMIN CONSOLE</h1>
+                <h1>Console Admin</h1>
                 <p style="color: var(--text-muted); font-size: 0.9rem;">Gestione in tempo reale</p>
             </div>
             <button class="small danger" onclick="logout()">Esci</button>
@@ -386,7 +272,7 @@
         <div class="admin-grid">
             <!-- Coda Brani -->
             <div class="card">
-                <h2>Coda Brani Richiesti<span id="queue-count" style="color:var(--text-muted); font-size:1rem;">(0)</span></h2>
+                <h2>Coda Richieste <span id="queue-count" style="color:var(--text-muted); font-size:1rem;">(0)</span></h2>
                 <div id="admin-queue-list">
                     <!-- Popolato via JS -->
                 </div>
@@ -394,7 +280,7 @@
 
             <!-- Private Messaggi -->
             <div class="card">
-                <h2>Messaggi (Privati)</h2>
+                <h2>Shoutout (Privati)</h2>
                 <div id="admin-shoutout-list">
                     <!-- Popolato via JS -->
                 </div>
@@ -404,83 +290,27 @@
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h2>Bacheca Pubblica</h2>
-                    <div>
-                        <!-- Nuovo tasto Esporta -->
-                        <button class="small success" onclick="exportBoard()"><i class="fa-solid fa-camera"></i> Esporta</button>
-                        <button class="small danger" onclick="clearBoard()"><i class="fa-solid fa-trash"></i> Svuota</button>
-                    </div>
+                    <button class="small danger" onclick="clearBoard()"><i class="fa-solid fa-trash"></i> Svuota</button>
                 </div>
-                <div id="admin-bachecaList" style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-top: 15px;">
+                <div class="board-messages" id="admin-board-list" style="margin-top: 15px;">
                     <!-- Popolato via JS -->
                 </div>
             </div>
-            
-            <!-- Contenitore Nascosto per l'Esportazione in Immagine -->
-                <div id="export-container">
-                    <h1 id="export-title">Titolo Evento</h1>
-                    <p id="export-desc">Data e Luogo</p>
-                    <div id="export-bacheca"></div>
-                    <img src="logo_no_bg_white.png" id="export-logo" class="logo-img">
-                </div>
-            
         </div>
     </div>
 
     <!-- SCRIPT LOGICA (MOCK DATA) -->
-    <!-- 1. Caricamento SDK Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
     <script>
-        // --- 2. CONFIGURAZIONE FIREBASE ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyCQUOIlctA9b6lq3-BVtdxL_wq5XA2KEkQ",
-            authDomain: "dj-live-platform-e84fc.firebaseapp.com",
-            databaseURL: "https://dj-live-platform-e84fc-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "dj-live-platform-e84fc",
-            storageBucket: "dj-live-platform-e84fc.firebasestorage.app",
-            messagingSenderId: "553614534686",
-            appId: "1:553614534686:web:f1d06e248ec8ed7dc6e60f",
-            measurementId: "G-D215G1VEN7"
-        };
-
-        // Inizializza Firebase
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-
-        // Riferimenti alle "cartelle" nel database
-        const dbQueue = database.ref('queue');
-        const dbBoard = database.ref('boardMessages');
-        const dbShoutouts = database.ref('shoutouts');
-
-        // --- STATO LOCALE E COSTANTI ---
-        const noteColors = ['#fdf09c', '#f5c6cb', '#b8daff', '#c3e6cb', '#e2d9f3'];
-        let queue = [];
-        let boardMessages = [];
-        let shoutouts = [];
-
-        // --- 3. ASCOLTATORI FIREBASE IN TEMPO REALE ---
-        // Queste funzioni scattano automaticamente quando il database cambia
-        
-        dbQueue.on('value', (snapshot) => {
-            const data = snapshot.val();
-            queue = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
-            renderAll();
-        });
-
-        dbBoard.on('value', (snapshot) => {
-            const data = snapshot.val();
-            // Ordina i messaggi dal più recente (invertendo l'array)
-            boardMessages = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })).reverse() : [];
-            renderAll();
-        });
-
-        dbShoutouts.on('value', (snapshot) => {
-            const data = snapshot.val();
-            shoutouts = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
-            renderAll();
-        });
-
+        // --- STATO DELL'APP (Mock Data temporanei) ---
+        let queue = [
+            { id: 1, title: "Losing It", artist: "FISHER", user: "Marco" }
+        ];
+        let boardMessages = [
+            { id: 1, user: "Giulia", text: "Serata pazzesca! 🔥" }
+        ];
+        let shoutouts = [
+            { id: 1, user: "Ale", text: "Auguri a Sara che compie 20 anni!" }
+        ];
 
         // --- GESTIONE SPLASH E ROUTING BASE ---
         window.onload = () => {
@@ -490,16 +320,20 @@
                 setTimeout(() => {
                     splash.style.display = 'none';
                     checkRoute();
-                }, 800); 
-            }, 2300); 
+                    renderAll(); // Inizializza i dati mock
+                }, 800); // Attende fine fadeOut
+            }, 2300); // Durata animazione logo
         };
 
         window.onhashchange = checkRoute;
 
         function checkRoute() {
+            // Nascondi tutte le viste
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            
             const hash = window.location.hash;
             if (hash === '#admin') {
+                // Se non è loggato, mostra login, altrimenti dashboard (simulato)
                 if(sessionStorage.getItem('dj_logged_in') === 'true') {
                     document.getElementById('admin-dashboard-view').classList.add('active');
                 } else {
@@ -512,8 +346,10 @@
 
         // --- FUNZIONI LATO UTENTE ---
         function switchTab(tabId) {
+            // Aggiorna bottoni
             document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
             event.currentTarget.classList.add('active');
+            // Aggiorna contenuti
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             document.getElementById('tab-' + tabId).classList.add('active');
         }
@@ -522,13 +358,12 @@
             e.preventDefault();
             const title = document.getElementById('req-title').value;
             const artist = document.getElementById('req-artist').value;
-            const user = document.getElementById('req-name').value || 'Anonimo';
+            const name = document.getElementById('req-name').value || 'Anonimo';
             
-            // Scrittura su Firebase
-            dbQueue.push({ title, artist, user });
-            
+            queue.push({ id: Date.now(), title, artist, user: name });
             e.target.reset();
             alert("Richiesta inviata al DJ!");
+            renderAll();
         }
 
         function handleBoardMsg(e) {
@@ -536,13 +371,9 @@
             const user = document.getElementById('board-name').value;
             const text = document.getElementById('board-text').value;
             
-            const rotation = (Math.random() * 14 - 7).toFixed(1) + 'deg';
-            const color = noteColors[Math.floor(Math.random() * noteColors.length)];
-        
-            // Scrittura su Firebase
-            dbBoard.push({ user, text, color, rotation, timestamp: firebase.database.ServerValue.TIMESTAMP });
-            
+            boardMessages.push({ id: Date.now(), user, text });
             e.target.reset();
+            renderAll();
         }
 
         function handleShoutout(e) {
@@ -550,18 +381,16 @@
             const user = document.getElementById('shout-name').value;
             const text = document.getElementById('shout-text').value;
             
-            // Scrittura su Firebase
-            dbShoutouts.push({ user, text });
-            
+            shoutouts.push({ id: Date.now(), user, text });
             e.target.reset();
             alert("Messaggio inviato in console!");
+            renderAll();
         }
 
         // --- FUNZIONI LATO ADMIN ---
         function handleLogin(e) {
             e.preventDefault();
             const pwd = document.getElementById('admin-pwd').value;
-            // Password admin base
             if (pwd === 'admin123') {
                 sessionStorage.setItem('dj_logged_in', 'true');
                 checkRoute();
@@ -575,97 +404,34 @@
             checkRoute();
         }
 
-        // Eliminazione dati da Firebase
         function removeQueue(id) {
-            dbQueue.child(id).remove();
+            queue = queue.filter(q => q.id !== id);
+            renderAll();
         }
 
         function removeShoutout(id) {
-            dbShoutouts.child(id).remove();
+            shoutouts = shoutouts.filter(s => s.id !== id);
+            renderAll();
         }
 
         function clearBoard() {
             if(confirm("Sei sicuro di voler cancellare tutta la bacheca?")) {
-                dbBoard.remove();
+                boardMessages = [];
+                renderAll();
             }
         }
 
-        function exportBoard() {
-            if (boardMessages.length === 0) {
-                alert("La bacheca è vuota! Non c'è nulla da esportare.");
-                return;
-            }
-
-            // 1. Chiedi all'Admin i dettagli dell'evento
-            const titolo = prompt("Inserisci il titolo dell'evento (es. Compleanno Marco):", "Live Event");
-            if (titolo === null) return; // Se l'utente clicca 'Annulla'
-            
-            const desc = prompt("Inserisci una descrizione (es. 24 Maggio - Vanilla Club):", "");
-            if (desc === null) return;
-
-            // 2. Compila il contenitore di esportazione
-            document.getElementById('export-title').innerText = titolo;
-            document.getElementById('export-desc').innerText = desc;
-            
-            // Copia i post-it attuali
-            const htmlBacheca = document.getElementById('admin-bachecaList').innerHTML;
-            document.getElementById('export-bacheca').innerHTML = htmlBacheca;
-
-            // 3. Prepara il contenitore per la "foto"
-            const exportContainer = document.getElementById('export-container');
-            exportContainer.style.left = '0'; // Lo portiamo temporaneamente nello schermo (ma resta dietro per lo z-index negativo)
-
-            // 4. Scatta la foto e genera il download
-            html2canvas(exportContainer, {
-                backgroundColor: "#050505",
-                scale: 2 // Aumenta la risoluzione (effetto Retina)
-            }).then(canvas => {
-                const link = document.createElement('a');
-                // Crea un nome file pulito senza spazi
-                const safeTitle = titolo.replace(/\s+/g, '_'); 
-                link.download = `Bacheca_${safeTitle}.png`;
-                link.href = canvas.toDataURL("image/png");
-                link.click(); // Avvia il download automatico
-
-                // Riporta il contenitore fuori dallo schermo
-                exportContainer.style.left = '-9999px';
-            }).catch(err => {
-                console.error("Errore esportazione", err);
-                alert("Si è verificato un errore durante l'esportazione.");
-                exportContainer.style.left = '-9999px';
-            });
-        }
-        
         // --- FUNZIONI DI RENDER (Aggiornamento UI) ---
         function renderAll() {
-            // Render Bacheca
-            const renderBacheca = (containerId) => {
-                const container = document.getElementById(containerId);
-                if (!container) return; 
-        
-                container.innerHTML = ''; 
-        
-                if (boardMessages.length === 0) {
-                     container.innerHTML = '<p style="color:var(--text-muted); width: 100%; text-align: center;">Nessun messaggio ancora.</p>';
-                     return;
-                }
-        
-                boardMessages.forEach(m => {
-                    const note = document.createElement('div');
-                    note.className = 'digital-note';
-                    note.style.setProperty('--rot', m.rotation);
-                    note.style.backgroundColor = m.color;
-                    note.innerHTML = `
-                        <div class="note-author">${m.user}</div>
-                        <div class="note-text">${m.text}</div>
-                    `;
-                    container.appendChild(note);
-                });
-            };
-        
-            renderBacheca('bachecaList');       
-            renderBacheca('admin-bachecaList'); 
-        
+            // Render Bacheca Pubblica (Utente e Admin)
+            const boardHTML = boardMessages.map(m => 
+                `<div class="message-bubble"><strong>${m.user}</strong>${m.text}</div>`
+            ).join('');
+            document.getElementById('public-board').innerHTML = boardHTML || '<p style="color:var(--text-muted);">Nessun messaggio ancora.</p>';
+            if(document.getElementById('admin-board-list')) {
+                document.getElementById('admin-board-list').innerHTML = boardHTML || '<p style="color:var(--text-muted);">Nessun messaggio.</p>';
+            }
+
             // Render Coda Admin
             const queueHTML = queue.map(q => 
                 `<div class="queue-item">
@@ -673,14 +439,14 @@
                         <h3>${q.title} <span style="font-size:0.8rem; font-weight:normal;">- ${q.artist}</span></h3>
                         <p>Richiesto da: ${q.user}</p>
                     </div>
-                    <button class="small success" onclick="removeQueue('${q.id}')"><i class="fa-solid fa-check"></i> Fatto</button>
+                    <button class="small success" onclick="removeQueue(${q.id})"><i class="fa-solid fa-check"></i> Fatto</button>
                 </div>`
             ).join('');
             if(document.getElementById('admin-queue-list')) {
                 document.getElementById('admin-queue-list').innerHTML = queueHTML || '<p style="color:var(--text-muted);">Coda vuota.</p>';
                 document.getElementById('queue-count').innerText = `(${queue.length})`;
             }
-        
+
             // Render Shoutout Admin
             const shoutoutHTML = shoutouts.map(s => 
                 `<div class="queue-item" style="border-left: 4px solid var(--accent);">
@@ -688,7 +454,7 @@
                         <h3>${s.user}</h3>
                         <p style="color: var(--text-main); font-size: 0.95rem; margin-top:5px;">${s.text}</p>
                     </div>
-                    <button class="small danger" onclick="removeShoutout('${s.id}')"><i class="fa-solid fa-xmark"></i></button>
+                    <button class="small danger" onclick="removeShoutout(${s.id})"><i class="fa-solid fa-xmark"></i></button>
                 </div>`
             ).join('');
             if(document.getElementById('admin-shoutout-list')) {
