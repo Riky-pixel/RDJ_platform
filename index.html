@@ -60,6 +60,93 @@
             100% { transform: scale(1.5); opacity: 0; }
         }
 
+        /* Contenitore della Bacheca */
+        #bachecaList {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+            padding: 30px 10px;
+            background: rgba(20, 20, 20, 0.6); /* Sfondo scuro per far risaltare le note */
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-height: 300px;
+        }
+        
+        /* Stile del singolo "Blocchettino" */
+        .digital-note {
+            width: 130px;
+            min-height: 130px;
+            padding: 20px 15px;
+            border-radius: 4px 12px 12px 12px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.5);
+            color: #111; /* Testo scuro ad alto contrasto */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            cursor: pointer;
+            
+            /* Variabile CSS --rot iniettata da JS per l'inclinazione casuale */
+            transform: rotate(var(--rot));
+            
+            /* Animazione di entrata professionale */
+            animation: popInNote 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, z-index 0s;
+        }
+        
+        /* Effetto Hover per interazione */
+        .digital-note:hover {
+            transform: scale(1.15) rotate(0deg) !important;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
+            z-index: 10;
+        }
+        
+        /* La "Puntina" (Pin) digitale in alto al centro */
+        .digital-note::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #666, #111);
+            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.5);
+        }
+        
+        .note-author {
+            font-weight: 800;
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.6;
+        }
+        
+        .note-text {
+            font-size: 1.05rem;
+            line-height: 1.3;
+            font-weight: 500;
+            word-wrap: break-word;
+        }
+        
+        /* Keyframe per l'effetto pop-up rimbalzante */
+        @keyframes popInNote {
+            0% { 
+                opacity: 0; 
+                transform: scale(0.3) translateY(-60px) rotate(var(--rot)); 
+            }
+            100% { 
+                opacity: 1; 
+                transform: scale(1) translateY(0) rotate(var(--rot)); 
+            }
+        }
+
         /* --- GESTIONE VISTE (SPA) --- */
         .view { display: none; padding: 20px; max-width: 1200px; margin: 0 auto; }
         .view.active { display: block; animation: fadeIn 0.5s ease; }
@@ -331,6 +418,32 @@
             } else {
                 document.getElementById('user-view').classList.add('active');
             }
+        }
+
+        function aggiungiMessaggioBacheca(nome, messaggio) {
+            const bachecaList = document.getElementById('bachecaList');
+            
+            // Creazione dell'elemento post-it
+            const note = document.createElement('div');
+            note.className = 'digital-note';
+            
+            // 1. Genera una rotazione casuale tra -7 e +7 gradi
+            const randomRotation = (Math.random() * 14 - 7).toFixed(1) + 'deg';
+            note.style.setProperty('--rot', randomRotation); // Passa il valore al CSS
+            
+            // 2. Colori assortiti in stile post-it ma moderni (giallo, rosa, azzurro, verde)
+            const colors = ['#fdf09c', '#f5c6cb', '#b8daff', '#c3e6cb', '#e2d9f3'];
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+            note.style.backgroundColor = randomColor;
+            
+            // 3. Inserimento contenuto
+            note.innerHTML = `
+                <div class="note-author">${nome}</div>
+                <div class="note-text">${messaggio}</div>
+            `;
+            
+            // Aggiunge la nuova nota in cima alla bacheca
+            bachecaList.prepend(note);
         }
 
         // --- FUNZIONI LATO UTENTE ---
