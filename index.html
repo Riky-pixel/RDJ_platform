@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DJ Live Platform</title>
+    <!-- Google Fonts: Outfit per un look moderno e tech -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome per le icone -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- VARIABILI GLOBALI --- */
+        :root {
+            --bg-color: #050505;
+            --card-bg: #151515;
+            --text-main: #ffffff;
+            --text-muted: #888888;
+            --accent: #ffffff;
+            --danger: #ff4757;
+            --success: #2ed573;
+            --border: #333333;
+        }
+
+        /* --- RESET E BASE --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Il logo nero viene invertito in bianco tramite CSS */
+        .logo-img {
+            filter: invert(1) brightness(2);
+            max-width: 100%;
+        }
+
+        /* --- SPLASH SCREEN --- */
+        #splash-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease-out;
+        }
+        #splash-screen .logo-container {
+            width: 150px;
+            animation: pulseFade 2.5s ease-in-out forwards;
+        }
+        @keyframes pulseFade {
+            0% { transform: scale(0.8); opacity: 0; }
+            30% { transform: scale(1.05); opacity: 1; }
+            70% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        /* --- GESTIONE VISTE (SPA) --- */
+        .view { display: none; padding: 20px; max-width: 1200px; margin: 0 auto; }
+        .view.active { display: block; animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- UI COMPONENTI COMUNI --- */
+        header { text-align: center; margin-bottom: 30px; }
+        header img { width: 60px; margin-bottom: 10px; }
+        h1 { font-weight: 800; font-size: 1.8rem; letter-spacing: 2px; text-transform: uppercase; }
+        h2 { font-weight: 600; font-size: 1.2rem; margin-bottom: 15px; color: var(--text-muted); }
+        
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        input, textarea {
+            width: 100%;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid var(--border);
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 1rem;
+            padding: 10px 5px;
+            margin-bottom: 20px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        input:focus, textarea:focus { border-color: var(--accent); }
+        
+        button {
+            width: 100%;
+            background: var(--accent);
+            color: var(--bg-color);
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 1rem;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+        button:active { transform: scale(0.98); }
+        button.danger { background: var(--danger); color: white; }
+        button.success { background: var(--success); color: white; }
+        button.small { width: auto; padding: 8px 15px; font-size: 0.8rem; margin-left: 10px; }
+
+        /* --- LATO UTENTE (MOBILE FIRST) --- */
+        .nav-tabs {
+            display: flex;
+            justify-content: space-between;
+            background: var(--card-bg);
+            border-radius: 50px;
+            padding: 5px;
+            margin-bottom: 25px;
+        }
+        .nav-tabs button {
+            background: transparent; color: var(--text-muted);
+            border-radius: 40px; padding: 10px;
+            font-size: 0.9rem; font-weight: 600;
+        }
+        .nav-tabs button.active {
+            background: var(--border); color: var(--text-main);
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+
+        .board-messages { max-height: 300px; overflow-y: auto; margin-bottom: 15px; }
+        .message-bubble {
+            background: var(--border);
+            padding: 12px 15px;
+            border-radius: 12px 12px 12px 2px;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+        }
+        .message-bubble strong { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; }
+
+        .social-links { display: flex; justify-content: center; gap: 20px; margin-top: 20px; }
+        .social-links a { color: var(--text-main); font-size: 2rem; transition: color 0.3s; }
+        .social-links a:hover { color: var(--text-muted); }
+
+        /* --- LATO ADMIN (TABLET/DESKTOP OTTIMIZZATO) --- */
+        #admin-dashboard-view .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .queue-item {
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--border); padding: 15px; border-radius: 8px; margin-bottom: 10px;
+        }
+        .queue-info h3 { font-size: 1.1rem; margin-bottom: 4px; }
+        .queue-info p { font-size: 0.85rem; color: var(--text-muted); }
+        
+        .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;}
+        .admin-header img { width: 50px; margin: 0; }
+    </style>
+</head>
+<body>
+
+    <!-- 1. SPLASH SCREEN -->
+    <div id="splash-screen">
+        <div class="logo-container">
+            <img src="logo.png" alt="Logo" class="logo-img" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cG9seWdvbiBwb2ludHM9IjUwLDUgOTUsMjUgOTUsNzUgNTAsOTUgNSw3NSA1LDI1IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iNSIvPjwvc3ZnPg=='">
+        </div>
+    </div>
+
+    <!-- 2. VISTA UTENTE (PUBBLICO) -->
+    <div id="user-view" class="view">
+        <header>
+            <img src="logo.png" alt="Logo" class="logo-img" onerror="this.style.display='none'">
+            <h1>Live Vibes</h1>
+        </header>
+
+        <div class="nav-tabs">
+            <button class="active" onclick="switchTab('request')"><i class="fa-solid fa-music"></i> Brani</button>
+            <button onclick="switchTab('board')"><i class="fa-solid fa-message"></i> Bacheca</button>
+            <button onclick="switchTab('shoutout')"><i class="fa-solid fa-microphone"></i> DJ</button>
+            <button onclick="switchTab('contacts')"><i class="fa-solid fa-link"></i> Info</button>
+        </div>
+
+        <!-- Tab: Richiesta Brani -->
+        <div id="tab-request" class="tab-content active card">
+            <h2>Richiedi un brano</h2>
+            <form id="form-request" onsubmit="handleRequest(event)">
+                <input type="text" id="req-title" placeholder="Titolo del brano" required>
+                <input type="text" id="req-artist" placeholder="Artista" required>
+                <input type="text" id="req-name" placeholder="Il tuo nome (opzionale)">
+                <button type="submit">Invia Richiesta</button>
+            </form>
+        </div>
+
+        <!-- Tab: Bacheca Pubblica -->
+        <div id="tab-board" class="tab-content card">
+            <h2>Bacheca Live</h2>
+            <div class="board-messages" id="public-board">
+                <!-- Messaggi mock popolati via JS -->
+            </div>
+            <form id="form-board" onsubmit="handleBoardMsg(event)">
+                <input type="text" id="board-name" placeholder="Il tuo nome" required>
+                <input type="text" id="board-text" placeholder="Scrivi un messaggio a tutti..." required>
+                <button type="submit">Pubblica</button>
+            </form>
+        </div>
+
+        <!-- Tab: Shoutout / Messaggio Privato DJ -->
+        <div id="tab-shoutout" class="tab-content card">
+            <h2>Messaggio privato al DJ</h2>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px;">
+                Fai una dedica, annuncia un compleanno o saluta il DJ. Questo messaggio non sarà pubblico.
+            </p>
+            <form id="form-shoutout" onsubmit="handleShoutout(event)">
+                <input type="text" id="shout-name" placeholder="Il tuo nome" required>
+                <textarea id="shout-text" rows="3" placeholder="Il tuo messaggio..." required></textarea>
+                <button type="submit">Invia in Console</button>
+            </form>
+        </div>
+
+        <!-- Tab: Contatti -->
+        <div id="tab-contacts" class="tab-content card">
+            <h2 style="text-align: center;">Follow Me</h2>
+            <div class="social-links">
+                <a href="#"><i class="fa-brands fa-instagram"></i></a>
+                <a href="#"><i class="fa-brands fa-tiktok"></i></a>
+                <a href="#"><i class="fa-brands fa-soundcloud"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. VISTA LOGIN ADMIN -->
+    <div id="admin-login-view" class="view">
+        <div class="card" style="margin-top: 20vh;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <img src="logo.png" alt="Logo" class="logo-img" style="width: 80px;" onerror="this.style.display='none'">
+                <h1>DJ Console</h1>
+            </div>
+            <form onsubmit="handleLogin(event)">
+                <input type="password" id="admin-pwd" placeholder="Password (admin123)" required>
+                <button type="submit">Accedi</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 4. VISTA DASHBOARD ADMIN -->
+    <div id="admin-dashboard-view" class="view">
+        <div class="admin-header">
+            <div>
+                <h1>Console Admin</h1>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Gestione in tempo reale</p>
+            </div>
+            <button class="small danger" onclick="logout()">Esci</button>
+        </div>
+
+        <div class="admin-grid">
+            <!-- Coda Brani -->
+            <div class="card">
+                <h2>Coda Richieste <span id="queue-count" style="color:var(--text-muted); font-size:1rem;">(0)</span></h2>
+                <div id="admin-queue-list">
+                    <!-- Popolato via JS -->
+                </div>
+            </div>
+
+            <!-- Private Messaggi -->
+            <div class="card">
+                <h2>Shoutout (Privati)</h2>
+                <div id="admin-shoutout-list">
+                    <!-- Popolato via JS -->
+                </div>
+            </div>
+
+            <!-- Gestione Bacheca -->
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h2>Bacheca Pubblica</h2>
+                    <button class="small danger" onclick="clearBoard()"><i class="fa-solid fa-trash"></i> Svuota</button>
+                </div>
+                <div class="board-messages" id="admin-board-list" style="margin-top: 15px;">
+                    <!-- Popolato via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT LOGICA (MOCK DATA) -->
+    <script>
+        // --- STATO DELL'APP (Mock Data temporanei) ---
+        let queue = [
+            { id: 1, title: "Losing It", artist: "FISHER", user: "Marco" }
+        ];
+        let boardMessages = [
+            { id: 1, user: "Giulia", text: "Serata pazzesca! 🔥" }
+        ];
+        let shoutouts = [
+            { id: 1, user: "Ale", text: "Auguri a Sara che compie 20 anni!" }
+        ];
+
+        // --- GESTIONE SPLASH E ROUTING BASE ---
+        window.onload = () => {
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                splash.style.opacity = '0';
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                    checkRoute();
+                    renderAll(); // Inizializza i dati mock
+                }, 800); // Attende fine fadeOut
+            }, 2300); // Durata animazione logo
+        };
+
+        window.onhashchange = checkRoute;
+
+        function checkRoute() {
+            // Nascondi tutte le viste
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            
+            const hash = window.location.hash;
+            if (hash === '#admin') {
+                // Se non è loggato, mostra login, altrimenti dashboard (simulato)
+                if(sessionStorage.getItem('dj_logged_in') === 'true') {
+                    document.getElementById('admin-dashboard-view').classList.add('active');
+                } else {
+                    document.getElementById('admin-login-view').classList.add('active');
+                }
+            } else {
+                document.getElementById('user-view').classList.add('active');
+            }
+        }
+
+        // --- FUNZIONI LATO UTENTE ---
+        function switchTab(tabId) {
+            // Aggiorna bottoni
+            document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            // Aggiorna contenuti
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+        }
+
+        function handleRequest(e) {
+            e.preventDefault();
+            const title = document.getElementById('req-title').value;
+            const artist = document.getElementById('req-artist').value;
+            const name = document.getElementById('req-name').value || 'Anonimo';
+            
+            queue.push({ id: Date.now(), title, artist, user: name });
+            e.target.reset();
+            alert("Richiesta inviata al DJ!");
+            renderAll();
+        }
+
+        function handleBoardMsg(e) {
+            e.preventDefault();
+            const user = document.getElementById('board-name').value;
+            const text = document.getElementById('board-text').value;
+            
+            boardMessages.push({ id: Date.now(), user, text });
+            e.target.reset();
+            renderAll();
+        }
+
+        function handleShoutout(e) {
+            e.preventDefault();
+            const user = document.getElementById('shout-name').value;
+            const text = document.getElementById('shout-text').value;
+            
+            shoutouts.push({ id: Date.now(), user, text });
+            e.target.reset();
+            alert("Messaggio inviato in console!");
+            renderAll();
+        }
+
+        // --- FUNZIONI LATO ADMIN ---
+        function handleLogin(e) {
+            e.preventDefault();
+            const pwd = document.getElementById('admin-pwd').value;
+            if (pwd === 'admin123') {
+                sessionStorage.setItem('dj_logged_in', 'true');
+                checkRoute();
+            } else {
+                alert("Password errata!");
+            }
+        }
+
+        function logout() {
+            sessionStorage.removeItem('dj_logged_in');
+            checkRoute();
+        }
+
+        function removeQueue(id) {
+            queue = queue.filter(q => q.id !== id);
+            renderAll();
+        }
+
+        function removeShoutout(id) {
+            shoutouts = shoutouts.filter(s => s.id !== id);
+            renderAll();
+        }
+
+        function clearBoard() {
+            if(confirm("Sei sicuro di voler cancellare tutta la bacheca?")) {
+                boardMessages = [];
+                renderAll();
+            }
+        }
+
+        // --- FUNZIONI DI RENDER (Aggiornamento UI) ---
+        function renderAll() {
+            // Render Bacheca Pubblica (Utente e Admin)
+            const boardHTML = boardMessages.map(m => 
+                `<div class="message-bubble"><strong>${m.user}</strong>${m.text}</div>`
+            ).join('');
+            document.getElementById('public-board').innerHTML = boardHTML || '<p style="color:var(--text-muted);">Nessun messaggio ancora.</p>';
+            if(document.getElementById('admin-board-list')) {
+                document.getElementById('admin-board-list').innerHTML = boardHTML || '<p style="color:var(--text-muted);">Nessun messaggio.</p>';
+            }
+
+            // Render Coda Admin
+            const queueHTML = queue.map(q => 
+                `<div class="queue-item">
+                    <div class="queue-info">
+                        <h3>${q.title} <span style="font-size:0.8rem; font-weight:normal;">- ${q.artist}</span></h3>
+                        <p>Richiesto da: ${q.user}</p>
+                    </div>
+                    <button class="small success" onclick="removeQueue(${q.id})"><i class="fa-solid fa-check"></i> Fatto</button>
+                </div>`
+            ).join('');
+            if(document.getElementById('admin-queue-list')) {
+                document.getElementById('admin-queue-list').innerHTML = queueHTML || '<p style="color:var(--text-muted);">Coda vuota.</p>';
+                document.getElementById('queue-count').innerText = `(${queue.length})`;
+            }
+
+            // Render Shoutout Admin
+            const shoutoutHTML = shoutouts.map(s => 
+                `<div class="queue-item" style="border-left: 4px solid var(--accent);">
+                    <div class="queue-info">
+                        <h3>${s.user}</h3>
+                        <p style="color: var(--text-main); font-size: 0.95rem; margin-top:5px;">${s.text}</p>
+                    </div>
+                    <button class="small danger" onclick="removeShoutout(${s.id})"><i class="fa-solid fa-xmark"></i></button>
+                </div>`
+            ).join('');
+            if(document.getElementById('admin-shoutout-list')) {
+                document.getElementById('admin-shoutout-list').innerHTML = shoutoutHTML || '<p style="color:var(--text-muted);">Nessun messaggio privato.</p>';
+            }
+        }
+    </script>
+</body>
+</html>
