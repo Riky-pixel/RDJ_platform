@@ -567,7 +567,7 @@
                         <h3>${q.title} <span style="font-size:0.8rem; font-weight:normal;">- ${q.artist}</span></h3>
                         <p>Richiesto da: ${q.user}</p>
                     </div>
-                    <button class="small success" onclick="removeQueue('${q.id}')"><i class="fa-solid fa-check"></i> Fatto</button>
+                    <button class="small success" onclick="removeQueue('${s.id}')"><i class="fa-solid fa-check"></i> Fatto</button>
                 </div>`
             ).join('');
             if(document.getElementById('admin-queue-list')) {
@@ -582,7 +582,7 @@
                         <h3>${s.user}</h3>
                         <p style="color: var(--text-main); font-size: 0.95rem; margin-top:5px;">${s.text}</p>
                     </div>
-                    <button class="small danger" onclick="removeShoutout('${q.id}')"><i class="fa-solid fa-xmark"></i></button>
+                    <button class="small danger" onclick="removeShoutout('${s.id}')"><i class="fa-solid fa-xmark"></i></button>
                 </div>`
             ).join('');
             if(document.getElementById('admin-shoutout-list')) {
