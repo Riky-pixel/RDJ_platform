@@ -367,25 +367,60 @@
     </div>
 
     <!-- SCRIPT LOGICA (MOCK DATA) -->
-    <script>
-        // --- STATO DELL'APP (Mock Data temporanei) ---
-        const noteColors = ['#fdf09c', '#f5c6cb', '#b8daff', '#c3e6cb', '#e2d9f3']; // Colori assortiti per le note
+    <!-- 1. Caricamento SDK Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
-        let queue = [
-            { id: 1, title: "Losing It", artist: "FISHER", user: "Marco" }
-        ];
-        let boardMessages = [
-            { 
-                id: 1, 
-                user: "Giulia", 
-                text: "Serata pazzesca! 🔥",
-                color: noteColors[Math.floor(Math.random() * noteColors.length)],
-                rotation: (Math.random() * 14 - 7).toFixed(1) + 'deg'
-            }
-        ];
-        let shoutouts = [
-            { id: 1, user: "Ale", text: "Auguri a Sara che compie 20 anni!" }
-        ];
+    <script>
+        // --- 2. CONFIGURAZIONE FIREBASE ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyCQUOIlctA9b6lq3-BVtdxL_wq5XA2KEkQ",
+            authDomain: "dj-live-platform-e84fc.firebaseapp.com",
+            databaseURL: "https://dj-live-platform-e84fc-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "dj-live-platform-e84fc",
+            storageBucket: "dj-live-platform-e84fc.firebasestorage.app",
+            messagingSenderId: "553614534686",
+            appId: "1:553614534686:web:f1d06e248ec8ed7dc6e60f",
+            measurementId: "G-D215G1VEN7"
+        };
+
+        // Inizializza Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Riferimenti alle "cartelle" nel database
+        const dbQueue = database.ref('queue');
+        const dbBoard = database.ref('boardMessages');
+        const dbShoutouts = database.ref('shoutouts');
+
+        // --- STATO LOCALE E COSTANTI ---
+        const noteColors = ['#fdf09c', '#f5c6cb', '#b8daff', '#c3e6cb', '#e2d9f3'];
+        let queue = [];
+        let boardMessages = [];
+        let shoutouts = [];
+
+        // --- 3. ASCOLTATORI FIREBASE IN TEMPO REALE ---
+        // Queste funzioni scattano automaticamente quando il database cambia
+        
+        dbQueue.on('value', (snapshot) => {
+            const data = snapshot.val();
+            queue = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
+            renderAll();
+        });
+
+        dbBoard.on('value', (snapshot) => {
+            const data = snapshot.val();
+            // Ordina i messaggi dal più recente (invertendo l'array)
+            boardMessages = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })).reverse() : [];
+            renderAll();
+        });
+
+        dbShoutouts.on('value', (snapshot) => {
+            const data = snapshot.val();
+            shoutouts = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
+            renderAll();
+        });
+
 
         // --- GESTIONE SPLASH E ROUTING BASE ---
         window.onload = () => {
@@ -395,20 +430,16 @@
                 setTimeout(() => {
                     splash.style.display = 'none';
                     checkRoute();
-                    renderAll(); // Inizializza i dati mock
-                }, 800); // Attende fine fadeOut
-            }, 2300); // Durata animazione logo
+                }, 800); 
+            }, 2300); 
         };
 
         window.onhashchange = checkRoute;
 
         function checkRoute() {
-            // Nascondi tutte le viste
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            
             const hash = window.location.hash;
             if (hash === '#admin') {
-                // Se non è loggato, mostra login, altrimenti dashboard (simulato)
                 if(sessionStorage.getItem('dj_logged_in') === 'true') {
                     document.getElementById('admin-dashboard-view').classList.add('active');
                 } else {
@@ -421,10 +452,8 @@
 
         // --- FUNZIONI LATO UTENTE ---
         function switchTab(tabId) {
-            // Aggiorna bottoni
             document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
             event.currentTarget.classList.add('active');
-            // Aggiorna contenuti
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             document.getElementById('tab-' + tabId).classList.add('active');
         }
@@ -433,12 +462,13 @@
             e.preventDefault();
             const title = document.getElementById('req-title').value;
             const artist = document.getElementById('req-artist').value;
-            const name = document.getElementById('req-name').value || 'Anonimo';
+            const user = document.getElementById('req-name').value || 'Anonimo';
             
-            queue.push({ id: Date.now(), title, artist, user: name });
+            // Scrittura su Firebase
+            dbQueue.push({ title, artist, user });
+            
             e.target.reset();
             alert("Richiesta inviata al DJ!");
-            renderAll();
         }
 
         function handleBoardMsg(e) {
@@ -446,13 +476,13 @@
             const user = document.getElementById('board-name').value;
             const text = document.getElementById('board-text').value;
             
-            // Genera attributi casuali per la nuova nota
             const rotation = (Math.random() * 14 - 7).toFixed(1) + 'deg';
             const color = noteColors[Math.floor(Math.random() * noteColors.length)];
         
-            boardMessages.push({ id: Date.now(), user, text, color, rotation });
+            // Scrittura su Firebase
+            dbBoard.push({ user, text, color, rotation, timestamp: firebase.database.ServerValue.TIMESTAMP });
+            
             e.target.reset();
-            renderAll();
         }
 
         function handleShoutout(e) {
@@ -460,16 +490,18 @@
             const user = document.getElementById('shout-name').value;
             const text = document.getElementById('shout-text').value;
             
-            shoutouts.push({ id: Date.now(), user, text });
+            // Scrittura su Firebase
+            dbShoutouts.push({ user, text });
+            
             e.target.reset();
             alert("Messaggio inviato in console!");
-            renderAll();
         }
 
         // --- FUNZIONI LATO ADMIN ---
         function handleLogin(e) {
             e.preventDefault();
             const pwd = document.getElementById('admin-pwd').value;
+            // Password admin base
             if (pwd === 'admin123') {
                 sessionStorage.setItem('dj_logged_in', 'true');
                 checkRoute();
@@ -483,31 +515,29 @@
             checkRoute();
         }
 
+        // Eliminazione dati da Firebase
         function removeQueue(id) {
-            queue = queue.filter(q => q.id !== id);
-            renderAll();
+            dbQueue.child(id).remove();
         }
 
         function removeShoutout(id) {
-            shoutouts = shoutouts.filter(s => s.id !== id);
-            renderAll();
+            dbShoutouts.child(id).remove();
         }
 
         function clearBoard() {
             if(confirm("Sei sicuro di voler cancellare tutta la bacheca?")) {
-                boardMessages = [];
-                renderAll();
+                dbBoard.remove();
             }
         }
 
         // --- FUNZIONI DI RENDER (Aggiornamento UI) ---
         function renderAll() {
-            // 1. RENDER BACHECA (Effetto Corkboard per Utente e Admin)
+            // Render Bacheca
             const renderBacheca = (containerId) => {
                 const container = document.getElementById(containerId);
-                if (!container) return; // Se il contenitore non esiste (es. siamo nella vista admin ma non è loggato)
+                if (!container) return; 
         
-                container.innerHTML = ''; // Pulisce il contenitore
+                container.innerHTML = ''; 
         
                 if (boardMessages.length === 0) {
                      container.innerHTML = '<p style="color:var(--text-muted); width: 100%; text-align: center;">Nessun messaggio ancora.</p>';
@@ -523,21 +553,21 @@
                         <div class="note-author">${m.user}</div>
                         <div class="note-text">${m.text}</div>
                     `;
-                    container.prepend(note); // Aggiunge in cima
+                    container.appendChild(note);
                 });
             };
         
-            renderBacheca('bachecaList');       // Renderizza vista Utente
-            renderBacheca('admin-bachecaList'); // Renderizza vista Admin
+            renderBacheca('bachecaList');       
+            renderBacheca('admin-bachecaList'); 
         
-            // 2. RENDER CODA ADMIN
+            // Render Coda Admin
             const queueHTML = queue.map(q => 
                 `<div class="queue-item">
                     <div class="queue-info">
                         <h3>${q.title} <span style="font-size:0.8rem; font-weight:normal;">- ${q.artist}</span></h3>
                         <p>Richiesto da: ${q.user}</p>
                     </div>
-                    <button class="small success" onclick="removeQueue(${q.id})"><i class="fa-solid fa-check"></i> Fatto</button>
+                    <button class="small success" onclick="removeQueue('${q.id}')"><i class="fa-solid fa-check"></i> Fatto</button>
                 </div>`
             ).join('');
             if(document.getElementById('admin-queue-list')) {
@@ -545,14 +575,14 @@
                 document.getElementById('queue-count').innerText = `(${queue.length})`;
             }
         
-            // 3. RENDER SHOUTOUT ADMIN
+            // Render Shoutout Admin
             const shoutoutHTML = shoutouts.map(s => 
                 `<div class="queue-item" style="border-left: 4px solid var(--accent);">
                     <div class="queue-info">
                         <h3>${s.user}</h3>
                         <p style="color: var(--text-main); font-size: 0.95rem; margin-top:5px;">${s.text}</p>
                     </div>
-                    <button class="small danger" onclick="removeShoutout(${s.id})"><i class="fa-solid fa-xmark"></i></button>
+                    <button class="small danger" onclick="removeShoutout('${q.id}')"><i class="fa-solid fa-xmark"></i></button>
                 </div>`
             ).join('');
             if(document.getElementById('admin-shoutout-list')) {
