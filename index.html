@@ -239,6 +239,42 @@
         
         .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;}
         .admin-header img { width: 50px; margin: 0; }
+
+        /* --- STILI PER L'ESPORTAZIONE IMMAGINE (Nascosto) --- */
+        #export-container {
+            position: fixed;
+            top: 0;
+            left: -9999px; /* Mantiene l'elemento fuori dallo schermo */
+            width: 1080px; /* Stile post Instagram */
+            padding: 60px;
+            background-color: #050505;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: -999;
+        }
+        #export-title { font-size: 3.5rem; margin-bottom: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; text-align: center;}
+        #export-desc { font-size: 1.8rem; color: #888; margin-bottom: 50px; text-align: center;}
+        #export-bacheca {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            justify-content: center;
+            width: 100%;
+            background: rgba(20, 20, 20, 0.6);
+            border-radius: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            padding: 50px;
+            min-height: 500px;
+        }
+        #export-logo {
+            margin-top: 40px;
+            align-self: flex-end;
+            width: 150px;
+            opacity: 0.6;
+        }
+        
     </style>
 </head>
 <body>
@@ -368,11 +404,22 @@
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h2>Bacheca Pubblica</h2>
-                    <button class="small danger" onclick="clearBoard()"><i class="fa-solid fa-trash"></i> Svuota</button>
+                    <div>
+                        <button class="small success" onclick="exportBoard()"><i class="fa-solid fa-camera"></i> Esporta</button>
+                        <button class="small danger" onclick="clearBoard()"><i class="fa-solid fa-trash"></i> Svuota</button>
+                    </div>
                 </div>
                 <div id="admin-bachecaList" style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-top: 15px;">
                     <!-- Popolato via JS -->
                 </div>
+            </div>
+
+            <!-- Contenitore Nascosto per l'Esportazione in Immagine -->
+            <div id="export-container">
+                <h1 id="export-title">Titolo Evento</h1>
+                <p id="export-desc">Data e Luogo</p>
+                <div id="export-bacheca"></div>
+                <img src="logo_no_bg_white.png" id="export-logo" class="logo-img" onerror="this.style.display='none'">
             </div>
         </div>
     </div>
@@ -539,6 +586,52 @@
             if(confirm("Sei sicuro di voler cancellare tutta la bacheca?")) {
                 dbBoard.remove();
             }
+        }
+
+        // --- NUOVA FUNZIONE: Esporta la bacheca come immagine ---
+        function exportBoard() {
+            if (boardMessages.length === 0) {
+                alert("La bacheca è vuota! Non c'è nulla da esportare.");
+                return;
+            }
+
+            // Chiede i dati all'utente
+            const titolo = prompt("Inserisci il titolo dell'evento (es. Compleanno Marco):", "Live Event");
+            if (titolo === null) return; 
+            
+            const desc = prompt("Inserisci una descrizione (es. 24 Maggio - Vanilla Club):", "");
+            if (desc === null) return;
+
+            // Compila il contenitore di esportazione
+            document.getElementById('export-title').innerText = titolo;
+            document.getElementById('export-desc').innerText = desc;
+            
+            // Copia i messaggi (post-it) nel contenitore nascosto
+            const htmlBacheca = document.getElementById('admin-bachecaList').innerHTML;
+            document.getElementById('export-bacheca').innerHTML = htmlBacheca;
+
+            // Mostra temporaneamente l'area per permettere ad html2canvas di "fotografarla"
+            const exportContainer = document.getElementById('export-container');
+            exportContainer.style.left = '0';
+
+            // Genera l'immagine
+            html2canvas(exportContainer, {
+                backgroundColor: "#050505",
+                scale: 2 // Aumenta la risoluzione
+            }).then(canvas => {
+                const link = document.createElement('a');
+                const safeTitle = titolo.replace(/\s+/g, '_'); 
+                link.download = `Bacheca_${safeTitle}.png`;
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+
+                // Nascondi di nuovo il contenitore
+                exportContainer.style.left = '-9999px';
+            }).catch(err => {
+                console.error("Errore esportazione", err);
+                alert("Si è verificato un errore durante l'esportazione.");
+                exportContainer.style.left = '-9999px';
+            });
         }
 
         // --- FUNZIONI DI RENDER (Aggiornamento UI) ---
