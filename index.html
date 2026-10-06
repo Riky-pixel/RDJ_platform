@@ -254,13 +254,13 @@
     <div id="user-view" class="view">
         <header>
             <img src="logo_no_bg_white.png" alt="Logo" class="logo-img" onerror="this.style.display='none'">
-            <h1>RDJ - LIVE VIBES</h1>
+            <h1>Live Vibes</h1>
         </header>
 
         <div class="nav-tabs">
             <button class="active" onclick="switchTab('request')"><i class="fa-solid fa-music"></i> Brani</button>
             <button onclick="switchTab('board')"><i class="fa-solid fa-message"></i> Bacheca</button>
-            <button onclick="switchTab('shoutout')"><i class="fa-solid fa-microphone"></i> CHAT DJ</button>
+            <button onclick="switchTab('shoutout')"><i class="fa-solid fa-microphone"></i> DJ</button>
             <button onclick="switchTab('contacts')"><i class="fa-solid fa-link"></i> Info</button>
         </div>
 
@@ -292,7 +292,7 @@
         <div id="tab-shoutout" class="tab-content card">
             <h2>Messaggio privato al DJ</h2>
             <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px;">
-                Manda un messaggio al DJ. Questo messaggio non sarà pubblico.
+                Fai una dedica, annuncia un compleanno o saluta il DJ. Questo messaggio non sarà pubblico.
             </p>
             <form id="form-shoutout" onsubmit="handleShoutout(event)">
                 <input type="text" id="shout-name" placeholder="Il tuo nome" required>
@@ -330,7 +330,7 @@
     <div id="admin-dashboard-view" class="view">
         <div class="admin-header">
             <div>
-                <h1>RDJ ADMIN CONSOLE</h1>
+                <h1>Console Admin</h1>
                 <p style="color: var(--text-muted); font-size: 0.9rem;">Gestione in tempo reale</p>
             </div>
             <button class="small danger" onclick="logout()">Esci</button>
@@ -339,7 +339,7 @@
         <div class="admin-grid">
             <!-- Coda Brani -->
             <div class="card">
-                <h2>Coda Brani Richiesti<span id="queue-count" style="color:var(--text-muted); font-size:1rem;">(0)</span></h2>
+                <h2>Coda Richieste <span id="queue-count" style="color:var(--text-muted); font-size:1rem;">(0)</span></h2>
                 <div id="admin-queue-list">
                     <!-- Popolato via JS -->
                 </div>
@@ -347,7 +347,7 @@
 
             <!-- Private Messaggi -->
             <div class="card">
-                <h2>Messaggi (Privati)</h2>
+                <h2>Shoutout (Privati)</h2>
                 <div id="admin-shoutout-list">
                     <!-- Popolato via JS -->
                 </div>
@@ -567,7 +567,7 @@
                         <h3>${q.title} <span style="font-size:0.8rem; font-weight:normal;">- ${q.artist}</span></h3>
                         <p>Richiesto da: ${q.user}</p>
                     </div>
-                    <button class="small success" onclick="removeQueue('${s.id}')"><i class="fa-solid fa-check"></i> Fatto</button>
+                    <button class="small success" onclick="removeQueue('${q.id}')"><i class="fa-solid fa-check"></i> Fatto</button>
                 </div>`
             ).join('');
             if(document.getElementById('admin-queue-list')) {
@@ -582,7 +582,7 @@
                         <h3>${s.user}</h3>
                         <p style="color: var(--text-main); font-size: 0.95rem; margin-top:5px;">${s.text}</p>
                     </div>
-                    <button class="small danger" onclick="removeShoutout('${s.id}')"><i class="fa-solid fa-xmark"></i></button>
+                    <button class="small danger" onclick="removeShoutout('${q.id}')"><i class="fa-solid fa-xmark"></i></button>
                 </div>`
             ).join('');
             if(document.getElementById('admin-shoutout-list')) {
