@@ -9,6 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <!-- FontAwesome per le icone -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <style>
         /* --- VARIABILI GLOBALI --- */
@@ -239,6 +241,41 @@
         
         .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;}
         .admin-header img { width: 50px; margin: 0; }
+
+        /* --- STILI PER L'ESPORTAZIONE IMMAGINE (Nascosto) --- */
+        #export-container {
+            position: fixed;
+            top: 0;
+            left: -9999px; /* Lo teniamo fuori dallo schermo finché non serve */
+            width: 1080px; /* Larghezza in stile post Instagram */
+            padding: 60px;
+            background-color: #050505;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: -999;
+        }
+        #export-title { font-size: 3.5rem; margin-bottom: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px;}
+        #export-desc { font-size: 1.8rem; color: #888; margin-bottom: 50px; }
+        #export-bacheca {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            justify-content: center;
+            width: 100%;
+            background: rgba(20, 20, 20, 0.6);
+            border-radius: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            padding: 50px;
+            min-height: 500px;
+        }
+        #export-logo {
+            margin-top: 40px;
+            align-self: flex-end;
+            width: 150px;
+            opacity: 0.6;
+        }      
     </style>
 </head>
 <body>
@@ -367,12 +404,25 @@
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h2>Bacheca Pubblica</h2>
-                    <button class="small danger" onclick="clearBoard()"><i class="fa-solid fa-trash"></i> Svuota</button>
+                    <div>
+                        <!-- Nuovo tasto Esporta -->
+                        <button class="small success" onclick="exportBoard()"><i class="fa-solid fa-camera"></i> Esporta</button>
+                        <button class="small danger" onclick="clearBoard()"><i class="fa-solid fa-trash"></i> Svuota</button>
+                    </div>
                 </div>
                 <div id="admin-bachecaList" style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-top: 15px;">
                     <!-- Popolato via JS -->
                 </div>
             </div>
+            
+            <!-- Contenitore Nascosto per l'Esportazione in Immagine -->
+                <div id="export-container">
+                    <h1 id="export-title">Titolo Evento</h1>
+                    <p id="export-desc">Data e Luogo</p>
+                    <div id="export-bacheca"></div>
+                    <img src="logo_no_bg_white.png" id="export-logo" class="logo-img">
+                </div>
+            
         </div>
     </div>
 
@@ -540,6 +590,52 @@
             }
         }
 
+        function exportBoard() {
+            if (boardMessages.length === 0) {
+                alert("La bacheca è vuota! Non c'è nulla da esportare.");
+                return;
+            }
+
+            // 1. Chiedi all'Admin i dettagli dell'evento
+            const titolo = prompt("Inserisci il titolo dell'evento (es. Compleanno Marco):", "Live Event");
+            if (titolo === null) return; // Se l'utente clicca 'Annulla'
+            
+            const desc = prompt("Inserisci una descrizione (es. 24 Maggio - Vanilla Club):", "");
+            if (desc === null) return;
+
+            // 2. Compila il contenitore di esportazione
+            document.getElementById('export-title').innerText = titolo;
+            document.getElementById('export-desc').innerText = desc;
+            
+            // Copia i post-it attuali
+            const htmlBacheca = document.getElementById('admin-bachecaList').innerHTML;
+            document.getElementById('export-bacheca').innerHTML = htmlBacheca;
+
+            // 3. Prepara il contenitore per la "foto"
+            const exportContainer = document.getElementById('export-container');
+            exportContainer.style.left = '0'; // Lo portiamo temporaneamente nello schermo (ma resta dietro per lo z-index negativo)
+
+            // 4. Scatta la foto e genera il download
+            html2canvas(exportContainer, {
+                backgroundColor: "#050505",
+                scale: 2 // Aumenta la risoluzione (effetto Retina)
+            }).then(canvas => {
+                const link = document.createElement('a');
+                // Crea un nome file pulito senza spazi
+                const safeTitle = titolo.replace(/\s+/g, '_'); 
+                link.download = `Bacheca_${safeTitle}.png`;
+                link.href = canvas.toDataURL("image/png");
+                link.click(); // Avvia il download automatico
+
+                // Riporta il contenitore fuori dallo schermo
+                exportContainer.style.left = '-9999px';
+            }).catch(err => {
+                console.error("Errore esportazione", err);
+                alert("Si è verificato un errore durante l'esportazione.");
+                exportContainer.style.left = '-9999px';
+            });
+        }
+        
         // --- FUNZIONI DI RENDER (Aggiornamento UI) ---
         function renderAll() {
             // Render Bacheca
@@ -577,7 +673,7 @@
                         <h3>${q.title} <span style="font-size:0.8rem; font-weight:normal;">- ${q.artist}</span></h3>
                         <p>Richiesto da: ${q.user}</p>
                     </div>
-                    <button class="small success" onclick="removeQueue('${s.id}')"><i class="fa-solid fa-check"></i> Fatto</button>
+                    <button class="small success" onclick="removeQueue('${q.id}')"><i class="fa-solid fa-check"></i> Fatto</button>
                 </div>`
             ).join('');
             if(document.getElementById('admin-queue-list')) {
