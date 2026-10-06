@@ -219,16 +219,6 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.3s; }
 
-        .board-messages { max-height: 300px; overflow-y: auto; margin-bottom: 15px; }
-        .message-bubble {
-            background: var(--border);
-            padding: 12px 15px;
-            border-radius: 12px 12px 12px 2px;
-            margin-bottom: 10px;
-            font-size: 0.95rem;
-        }
-        .message-bubble strong { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; }
-
         .social-links { display: flex; justify-content: center; gap: 20px; margin-top: 20px; }
         .social-links a { color: var(--text-main); font-size: 2rem; transition: color 0.3s; }
         .social-links a:hover { color: var(--text-muted); }
@@ -255,14 +245,14 @@
     <!-- 1. SPLASH SCREEN -->
     <div id="splash-screen">
         <div class="logo-container">
-            <img src="logo_white.png" alt="Logo" class="logo-img" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cG9seWdvbiBwb2ludHM9IjUwLDUgOTUsMjUgOTUsNzUgNTAsOTUgNSw3NSA1LDI1IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iNSIvPjwvc3ZnPg=='">
+            <img src="logo_no_bg_white.png" alt="Logo" class="logo-img" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cG9seWdvbiBwb2ludHM9IjUwLDUgOTUsMjUgOTUsNzUgNTAsOTUgNSw3NSA1LDI1IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iNSIvPjwvc3ZnPg=='">
         </div>
     </div>
 
     <!-- 2. VISTA UTENTE (PUBBLICO) -->
     <div id="user-view" class="view">
         <header>
-            <img src="logo_white.png" alt="Logo" class="logo-img" onerror="this.style.display='none'">
+            <img src="logo_no_bg_white.png" alt="Logo" class="logo-img" onerror="this.style.display='none'">
             <h1>Live Vibes</h1>
         </header>
 
@@ -287,7 +277,7 @@
         <!-- Tab: Bacheca Pubblica -->
         <div id="tab-board" class="tab-content card">
             <h2>Bacheca Live</h2>
-            <div class="board-messages" id="public-board">
+            <div id="bachecaList">
                 <!-- Messaggi mock popolati via JS -->
             </div>
             <form id="form-board" onsubmit="handleBoardMsg(event)">
@@ -325,7 +315,7 @@
     <div id="admin-login-view" class="view">
         <div class="card" style="margin-top: 20vh;">
             <div style="text-align: center; margin-bottom: 20px;">
-                <img src="logo_white.png" alt="Logo" class="logo-img" style="width: 80px;" onerror="this.style.display='none'">
+                <img src="logo_no_bg_white.png" alt="Logo" class="logo-img" style="width: 80px;" onerror="this.style.display='none'">
                 <h1>DJ Console</h1>
             </div>
             <form onsubmit="handleLogin(event)">
@@ -368,7 +358,7 @@
                     <h2>Bacheca Pubblica</h2>
                     <button class="small danger" onclick="clearBoard()"><i class="fa-solid fa-trash"></i> Svuota</button>
                 </div>
-                <div class="board-messages" id="admin-board-list" style="margin-top: 15px;">
+                <div id="admin-bachecaList" style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-top: 15px;">
                     <!-- Popolato via JS -->
                 </div>
             </div>
@@ -378,11 +368,19 @@
     <!-- SCRIPT LOGICA (MOCK DATA) -->
     <script>
         // --- STATO DELL'APP (Mock Data temporanei) ---
+        const noteColors = ['#fdf09c', '#f5c6cb', '#b8daff', '#c3e6cb', '#e2d9f3']; // Colori assortiti per le note
+
         let queue = [
             { id: 1, title: "Losing It", artist: "FISHER", user: "Marco" }
         ];
         let boardMessages = [
-            { id: 1, user: "Giulia", text: "Serata pazzesca! 🔥" }
+            { 
+                id: 1, 
+                user: "Giulia", 
+                text: "Serata pazzesca! 🔥",
+                color: noteColors[Math.floor(Math.random() * noteColors.length)],
+                rotation: (Math.random() * 14 - 7).toFixed(1) + 'deg'
+            }
         ];
         let shoutouts = [
             { id: 1, user: "Ale", text: "Auguri a Sara che compie 20 anni!" }
@@ -420,32 +418,6 @@
             }
         }
 
-        function aggiungiMessaggioBacheca(nome, messaggio) {
-            const bachecaList = document.getElementById('bachecaList');
-            
-            // Creazione dell'elemento post-it
-            const note = document.createElement('div');
-            note.className = 'digital-note';
-            
-            // 1. Genera una rotazione casuale tra -7 e +7 gradi
-            const randomRotation = (Math.random() * 14 - 7).toFixed(1) + 'deg';
-            note.style.setProperty('--rot', randomRotation); // Passa il valore al CSS
-            
-            // 2. Colori assortiti in stile post-it ma moderni (giallo, rosa, azzurro, verde)
-            const colors = ['#fdf09c', '#f5c6cb', '#b8daff', '#c3e6cb', '#e2d9f3'];
-            const randomColor = colors[Math.floor(Math.random() * colors.length)];
-            note.style.backgroundColor = randomColor;
-            
-            // 3. Inserimento contenuto
-            note.innerHTML = `
-                <div class="note-author">${nome}</div>
-                <div class="note-text">${messaggio}</div>
-            `;
-            
-            // Aggiunge la nuova nota in cima alla bacheca
-            bachecaList.prepend(note);
-        }
-
         // --- FUNZIONI LATO UTENTE ---
         function switchTab(tabId) {
             // Aggiorna bottoni
@@ -473,7 +445,11 @@
             const user = document.getElementById('board-name').value;
             const text = document.getElementById('board-text').value;
             
-            boardMessages.push({ id: Date.now(), user, text });
+            // Genera attributi casuali per la nuova nota
+            const rotation = (Math.random() * 14 - 7).toFixed(1) + 'deg';
+            const color = noteColors[Math.floor(Math.random() * noteColors.length)];
+        
+            boardMessages.push({ id: Date.now(), user, text, color, rotation });
             e.target.reset();
             renderAll();
         }
@@ -525,16 +501,35 @@
 
         // --- FUNZIONI DI RENDER (Aggiornamento UI) ---
         function renderAll() {
-            // Render Bacheca Pubblica (Utente e Admin)
-            const boardHTML = boardMessages.map(m => 
-                `<div class="message-bubble"><strong>${m.user}</strong>${m.text}</div>`
-            ).join('');
-            document.getElementById('public-board').innerHTML = boardHTML || '<p style="color:var(--text-muted);">Nessun messaggio ancora.</p>';
-            if(document.getElementById('admin-board-list')) {
-                document.getElementById('admin-board-list').innerHTML = boardHTML || '<p style="color:var(--text-muted);">Nessun messaggio.</p>';
-            }
-
-            // Render Coda Admin
+            // 1. RENDER BACHECA (Effetto Corkboard per Utente e Admin)
+            const renderBacheca = (containerId) => {
+                const container = document.getElementById(containerId);
+                if (!container) return; // Se il contenitore non esiste (es. siamo nella vista admin ma non è loggato)
+        
+                container.innerHTML = ''; // Pulisce il contenitore
+        
+                if (boardMessages.length === 0) {
+                     container.innerHTML = '<p style="color:var(--text-muted); width: 100%; text-align: center;">Nessun messaggio ancora.</p>';
+                     return;
+                }
+        
+                boardMessages.forEach(m => {
+                    const note = document.createElement('div');
+                    note.className = 'digital-note';
+                    note.style.setProperty('--rot', m.rotation);
+                    note.style.backgroundColor = m.color;
+                    note.innerHTML = `
+                        <div class="note-author">${m.user}</div>
+                        <div class="note-text">${m.text}</div>
+                    `;
+                    container.prepend(note); // Aggiunge in cima
+                });
+            };
+        
+            renderBacheca('bachecaList');       // Renderizza vista Utente
+            renderBacheca('admin-bachecaList'); // Renderizza vista Admin
+        
+            // 2. RENDER CODA ADMIN
             const queueHTML = queue.map(q => 
                 `<div class="queue-item">
                     <div class="queue-info">
@@ -548,8 +543,8 @@
                 document.getElementById('admin-queue-list').innerHTML = queueHTML || '<p style="color:var(--text-muted);">Coda vuota.</p>';
                 document.getElementById('queue-count').innerText = `(${queue.length})`;
             }
-
-            // Render Shoutout Admin
+        
+            // 3. RENDER SHOUTOUT ADMIN
             const shoutoutHTML = shoutouts.map(s => 
                 `<div class="queue-item" style="border-left: 4px solid var(--accent);">
                     <div class="queue-info">
