@@ -578,7 +578,8 @@
                         <h3>${q.title} <span style="font-size:0.8rem; font-weight:normal;">- ${q.artist}</span></h3>
                         <p>Richiesto da: ${q.user}</p>
                     </div>
-                    <button class="small success" onclick="removeQueue('${s.id}')"><i class="fa-solid fa-check"></i> Fatto</button>
+                    <!-- QUI ERA L'ERRORE: ora è corretto con q.id -->
+                    <button class="small success" onclick="removeQueue('${q.id}')"><i class="fa-solid fa-check"></i> Fatto</button>
                 </div>`
             ).join('');
             if(document.getElementById('admin-queue-list')) {
