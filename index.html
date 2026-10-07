@@ -277,15 +277,15 @@
 
         /* --- STILI PER L'ESPORTAZIONE IMMAGINE --- */
         #export-wrapper {
-            /* Questo wrapper nasconde fisicamente l'area all'utente */
+            /* Manda l'elemento lontano nello schermo per renderlo intoccabile */
             position: absolute;
-            top: 0;
-            left: 0;
+            top: -9999px;
+            left: -9999px;
             z-index: -9999;
-            opacity: 0.01; /* Quasi invisibile ma renderizzabile */
-            pointer-events: none; /* Impedisce click accidentali */
-            width: 100%;
-            height: 0; /* Altezza zero per non creare barre di scorrimento */
+            opacity: 0.01; 
+            pointer-events: none; 
+            width: 1px;
+            height: 1px;
             overflow: hidden;
         }
 
