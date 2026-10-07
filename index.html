@@ -274,6 +274,58 @@
             width: 150px;
             opacity: 0.6;
         }
+
+        /* --- STILI PER L'ESPORTAZIONE IMMAGINE --- */
+        #export-wrapper {
+            /* Questo wrapper nasconde fisicamente l'area all'utente */
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -9999;
+            opacity: 0.01; /* Quasi invisibile ma renderizzabile */
+            pointer-events: none; /* Impedisce click accidentali */
+            width: 100%;
+            height: 0; /* Altezza zero per non creare barre di scorrimento */
+            overflow: hidden;
+        }
+
+        #export-container {
+            width: 1080px; /* Larghezza fissa per export */
+            padding: 60px;
+            background-color: #050505;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* Per evitare che venga schiacciato dall'overflow hidden del genitore, lo posizioniamo fuori flusso */
+            position: absolute; 
+            top: 0;
+            left: 0;
+        }
+
+        #export-title { font-size: 3.5rem; margin-bottom: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; text-align: center;}
+        #export-desc { font-size: 1.8rem; color: #888; margin-bottom: 50px; text-align: center;}
+        #export-bacheca {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            justify-content: center;
+            width: 100%;
+            background: rgba(20, 20, 20, 0.6);
+            border-radius: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            padding: 50px;
+            min-height: 500px;
+        }
+        #export-logo {
+            margin-top: 40px;
+            align-self: flex-end;
+            width: 150px;
+            opacity: 0.6;
+        }
+
+
+        
         
     </style>
 </head>
@@ -296,7 +348,7 @@
         <div class="nav-tabs">
             <button class="active" onclick="switchTab('request')"><i class="fa-solid fa-music"></i> Brani</button>
             <button onclick="switchTab('board')"><i class="fa-solid fa-message"></i> Bacheca</button>
-            <button onclick="switchTab('shoutout')"><i class="fa-solid fa-microphone"></i>CHAT DJ</button>
+            <button onclick="switchTab('shoutout')"><i class="fa-solid fa-microphone"></i> CHAT DJ</button>
             <button onclick="switchTab('contacts')"><i class="fa-solid fa-link"></i> Info</button>
         </div>
 
@@ -382,7 +434,17 @@
             </div>
             <button class="small danger" onclick="logout()">Esci</button>
         </div>
-
+    
+    <!-- Contenitore Esportazione Immagine -->
+        <div id="export-wrapper">
+            <div id="export-container">
+                <h1 id="export-title">Titolo Evento</h1>
+                <p id="export-desc">Data e Luogo</p>
+                <div id="export-bacheca"></div>
+                <img src="logo_no_bg_white.png" id="export-logo" class="logo-img" onerror="this.style.display='none'">
+            </div>
+        </div>
+        
         <div class="admin-grid">
             <!-- Coda Brani -->
             <div class="card">
@@ -587,67 +649,47 @@
                 return;
             }
 
-            // 1. Chiedi all'Admin i dettagli
+            // Chiede i dati all'utente
             const titolo = prompt("Inserisci il titolo dell'evento (es. Compleanno Marco):", "Live Event");
             if (titolo === null) return; 
             
             const desc = prompt("Inserisci una descrizione (es. 24 Maggio - Vanilla Club):", "");
             if (desc === null) return;
 
-            // 2. Crea un container temporaneo isolato in fondo alla pagina (invisibile)
-            const tempContainer = document.createElement('div');
-            tempContainer.id = "export-container";
-            // Stili inline per forzare il layout corretto per la foto
-            tempContainer.style.cssText = `
-                position: absolute;
-                top: -9999px;
-                left: -9999px;
-                width: 1080px;
-                padding: 60px;
-                background-color: #050505;
-                color: white;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                font-family: 'Outfit', sans-serif;
-            `;
-
-            // Prendi l'HTML dei post-it attuali
+            // Compila i campi nel contenitore nascosto
+            document.getElementById('export-title').innerText = titolo;
+            document.getElementById('export-desc').innerText = desc;
+            
+            // Copia l'HTML esatto dei post-it
             const htmlBacheca = document.getElementById('admin-bachecaList').innerHTML;
+            document.getElementById('export-bacheca').innerHTML = htmlBacheca;
 
-            // 3. Struttura l'interno del container
-            tempContainer.innerHTML = `
-                <h1 style="font-size: 3.5rem; margin-bottom: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; text-align: center;">${titolo}</h1>
-                <p style="font-size: 1.8rem; color: #888; margin-bottom: 50px; text-align: center;">${desc}</p>
-                <div style="display: flex; flex-wrap: wrap; gap: 25px; justify-content: center; width: 100%; background: rgba(20, 20, 20, 0.6); border-radius: 20px; border: 2px solid rgba(255, 255, 255, 0.1); padding: 50px; min-height: 500px;">
-                    ${htmlBacheca}
-                </div>
-                <img src="logo_no_bg_white.png" style="margin-top: 40px; align-self: flex-end; width: 150px; opacity: 0.6;">
-            `;
+            // Ottieni l'elemento da fotografare
+            const exportContainer = document.getElementById('export-container');
 
-            // Aggiungi il container temporaneo alla pagina
-            document.body.appendChild(tempContainer);
+            // Avvisa l'admin
+            alert("Generazione immagine in corso, attendi qualche secondo...");
 
-            // 4. Scatta la foto al container temporaneo
-            html2canvas(tempContainer, {
-                backgroundColor: "#050505",
-                scale: 2 // Aumenta la risoluzione
-            }).then(canvas => {
-                // Avvia il download
-                const link = document.createElement('a');
-                const safeTitle = titolo.replace(/\s+/g, '_'); 
-                link.download = `Bacheca_${safeTitle}.png`;
-                link.href = canvas.toDataURL("image/png");
-                link.click();
-
-                // Pulizia: distruggi il container temporaneo per non sporcare il codice
-                document.body.removeChild(tempContainer);
-            }).catch(err => {
-                console.error("Errore esportazione", err);
-                alert("Si è verificato un errore durante l'esportazione.");
-                document.body.removeChild(tempContainer);
-            });
+            // Usa un timeout per garantire che il browser abbia "disegnato" l'HTML inserito
+            setTimeout(() => {
+                html2canvas(exportContainer, {
+                    backgroundColor: "#050505",
+                    scale: 2, 
+                    useCORS: true, 
+                    logging: false 
+                }).then(canvas => {
+                    const link = document.createElement('a');
+                    const safeTitle = titolo.replace(/\s+/g, '_'); 
+                    link.download = `Bacheca_${safeTitle}.png`;
+                    link.href = canvas.toDataURL("image/png");
+                    link.click();
+                }).catch(err => {
+                    console.error("Errore esportazione", err);
+                    alert("Si è verificato un errore durante l'esportazione. Controlla la console.");
+                });
+            }, 800); // Pausa di 800ms per sicurezza
         }
+        
 
         // --- FUNZIONI DI RENDER (Aggiornamento UI) ---
         function renderAll() {
