@@ -277,18 +277,15 @@
 
         /* --- STILI PER L'ESPORTAZIONE IMMAGINE --- */
         #export-wrapper {
-            /* Manda l'elemento lontano nello schermo per renderlo intoccabile */
             position: absolute;
-            top: -9999px;
-            left: -9999px;
+            top: 0;
+            left: 0;
             z-index: -9999;
-            opacity: 0.01; 
-            pointer-events: none; 
-            width: 1px;
-            height: 1px;
-            overflow: hidden;
+            opacity: 0; /* Completamente invisibile all'utente, ma leggibile dallo script */
+            pointer-events: none; /* Impedisce click accidentali */
+            width: 1080px; /* DEVE mantenere la larghezza reale altrimenti non scatta la foto */
         }
-
+        
         #export-container {
             width: 1080px; /* Larghezza fissa per export */
             padding: 60px;
@@ -667,8 +664,11 @@
             // Ottieni l'elemento da fotografare
             const exportContainer = document.getElementById('export-container');
 
-            // Avvisa l'admin
-            alert("Generazione immagine in corso, attendi qualche secondo...");
+            // Feedback visivo: Cambiamo testo al pulsante invece di usare un "alert" che blocca tutto
+            const exportBtn = document.querySelector('button[onclick="exportBoard()"]');
+            const originalText = exportBtn.innerHTML;
+            exportBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generazione...';
+            exportBtn.disabled = true;
 
             // Usa un timeout per garantire che il browser abbia "disegnato" l'HTML inserito
             setTimeout(() => {
@@ -683,11 +683,17 @@
                     link.download = `Bacheca_${safeTitle}.png`;
                     link.href = canvas.toDataURL("image/png");
                     link.click();
+                    
+                    // Ripristina il pulsante alla normalità
+                    exportBtn.innerHTML = originalText;
+                    exportBtn.disabled = false;
                 }).catch(err => {
                     console.error("Errore esportazione", err);
-                    alert("Si è verificato un errore durante l'esportazione. Controlla la console.");
+                    alert("Si è verificato un errore durante l'esportazione.");
+                    exportBtn.innerHTML = originalText;
+                    exportBtn.disabled = false;
                 });
-            }, 800); // Pausa di 800ms per sicurezza
+            }, 800); // Pausa di 800ms per far ricaricare l'interfaccia
         }
         
 
